@@ -1,0 +1,6 @@
+go 1.21.5
+
+use (
+	./first-approach/body-manipulation
+	./get-method/supermarket
+)
