@@ -101,9 +101,11 @@ func main() {
 	router := chi.NewRouter()
 
 	router.Get("/ping", Ping)
-	router.Get("/products", GetAllProducts)
-	router.Get("/products/{id}", GetProductById)
-	router.Get("/products/search", GetProductsFiltered)
+	router.Route("/products", func(r chi.Router) {
+		r.Get("/", GetAllProducts)
+		r.Get("/{id}", GetProductById)
+		r.Get("/search", GetProductsFiltered)
+	})
 
 	if err := http.ListenAndServe(":8080", router); err != nil {
 		panic(err)
