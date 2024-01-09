@@ -22,15 +22,9 @@ type Product struct {
 }
 
 func GetAllProducts(w http.ResponseWriter, req *http.Request) {
-	response, err := json.Marshal(products)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, err.Error())
-		return
-	}
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-type", "application/json")
-	fmt.Fprint(w, string(response))
+	json.NewEncoder(w).Encode(products)
 }
 
 func GetProductById(w http.ResponseWriter, req *http.Request) {
@@ -42,15 +36,9 @@ func GetProductById(w http.ResponseWriter, req *http.Request) {
 
 	for _, product := range products {
 		if product.Id == id {
-			response, err := json.Marshal(product)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprint(w, err.Error())
-				return
-			}
 			w.WriteHeader(http.StatusOK)
 			w.Header().Add("Content-type", "application/json")
-			fmt.Fprint(w, string(response))
+			json.NewEncoder(w).Encode(product)
 		}
 	}
 
@@ -61,14 +49,14 @@ func GetProductsFiltered(w http.ResponseWriter, req *http.Request) {
 	param := req.URL.Query().Get("priceGT")
 	if param == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "priceGT value was not set")
+		json.NewEncoder(w).Encode("priceGT value was not set")
 		return
 	}
 
 	price, err := strconv.ParseFloat(param, 64)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, err.Error())
+		json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
@@ -80,20 +68,14 @@ func GetProductsFiltered(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	response, err := json.Marshal(okProducts)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, err.Error())
-	}
-
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-type", "application/json")
-	fmt.Fprint(w, string(response))
+	json.NewEncoder(w).Encode(okProducts)
 }
 
 func Ping(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, "pong")
+	json.NewEncoder(w).Encode("pong")
 }
 
 var products []Product
