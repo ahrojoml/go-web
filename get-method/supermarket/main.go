@@ -6,79 +6,10 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
+	"supermarket/api"
 
 	"github.com/go-chi/chi"
 )
-
-type Product struct {
-	Id          int     `json:"id"`
-	Name        string  `json:"name"`
-	Quantity    int     `json:"quantity"`
-	Code        string  `json:"code_value"`
-	IsPublished bool    `json:"is_published"`
-	Expiration  string  `json:"expiration"`
-	Price       float64 `json:"price"`
-}
-
-func GetAllProducts(w http.ResponseWriter, req *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Header().Add("Content-type", "application/json")
-	json.NewEncoder(w).Encode(products)
-}
-
-func GetProductById(w http.ResponseWriter, req *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(req, "id"))
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	for _, product := range products {
-		if product.Id == id {
-			w.WriteHeader(http.StatusOK)
-			w.Header().Add("Content-type", "application/json")
-			json.NewEncoder(w).Encode(product)
-		}
-	}
-
-	w.WriteHeader(http.StatusNotFound)
-}
-
-func GetProductsFiltered(w http.ResponseWriter, req *http.Request) {
-	param := req.URL.Query().Get("priceGT")
-	if param == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("priceGT value was not set")
-		return
-	}
-
-	price, err := strconv.ParseFloat(param, 64)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(err.Error())
-		return
-	}
-
-	okProducts := []Product{}
-
-	for _, product := range products {
-		if product.Price > price {
-			okProducts = append(okProducts, product)
-		}
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Header().Add("Content-type", "application/json")
-	json.NewEncoder(w).Encode(okProducts)
-}
-
-func Ping(w http.ResponseWriter, req *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode("pong")
-}
-
-var products []Product
 
 func main() {
 	file, err := os.Open("./get-method/supermarket/products.json")
@@ -93,18 +24,32 @@ func main() {
 		return
 	}
 
-	if err := json.Unmarshal(jsonData, &products); err != nil {
+	var readProducts []api.Product
+	if err := json.Unmarshal(jsonData, &readProducts); err != nil {
 		fmt.Println(err)
 		return
 	}
 
+	var products map[int]api.Product = map[int]api.Product{}
+	var nextID int
+	for _, product := range readProducts {
+		products[product.Id] = product
+		nextID = max(nextID, product.Id)
+	}
+
+	productController := api.ProductsController{
+		Products: products,
+		NextID:   nextID + 1,
+	}
+
 	router := chi.NewRouter()
 
-	router.Get("/ping", Ping)
+	router.Get("/ping", api.Ping)
 	router.Route("/products", func(r chi.Router) {
-		r.Get("/", GetAllProducts)
-		r.Get("/{id}", GetProductById)
-		r.Get("/search", GetProductsFiltered)
+		r.Get("/", productController.GetAllProducts())
+		r.Get("/{id}", productController.GetProductById())
+		r.Get("/search", productController.GetProductsFiltered())
+		r.Post("/", productController.AddProduct())
 	})
 
 	if err := http.ListenAndServe(":8080", router); err != nil {
