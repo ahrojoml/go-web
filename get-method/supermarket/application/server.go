@@ -2,6 +2,7 @@ package application
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -56,7 +57,7 @@ func (s *Server) Run() error {
 		r.Post("/", productController.AddProduct())
 	})
 
-	if err := http.ListenAndServe(":8080", router); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", s.port), router); err != nil {
 		return err
 	}
 	return nil
