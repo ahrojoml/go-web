@@ -29,8 +29,8 @@ func (pc *ProductsController) AddProduct() http.HandlerFunc {
 				Message: "could not decode body",
 				Error:   true,
 			}
-			w.WriteHeader(http.StatusBadRequest)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(body)
 		}
 
@@ -39,8 +39,8 @@ func (pc *ProductsController) AddProduct() http.HandlerFunc {
 				Message: fmt.Sprintf("field is missing body"),
 				Error:   true,
 			}
-			w.WriteHeader(http.StatusBadRequest)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(body)
 			return
 		}
@@ -51,8 +51,8 @@ func (pc *ProductsController) AddProduct() http.HandlerFunc {
 					Message: "product already exists",
 					Error:   true,
 				}
-				w.WriteHeader(http.StatusBadRequest)
 				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusBadRequest)
 				json.NewEncoder(w).Encode(body)
 				return
 			}
@@ -63,8 +63,8 @@ func (pc *ProductsController) AddProduct() http.HandlerFunc {
 				Message: "could not parse expiration date",
 				Error:   true,
 			}
-			w.WriteHeader(http.StatusBadRequest)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(body)
 			return
 		}
@@ -87,8 +87,8 @@ func (pc *ProductsController) AddProduct() http.HandlerFunc {
 
 func (pc *ProductsController) GetAllProducts() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Header().Add("Content-type", "application/json")
 		json.NewEncoder(w).Encode(pc.Products)
 	}
 }
@@ -103,8 +103,8 @@ func (pc *ProductsController) GetProductById() http.HandlerFunc {
 
 		for _, product := range pc.Products {
 			if product.Id == id {
+				w.Header().Set("Content-type", "application/json")
 				w.WriteHeader(http.StatusOK)
-				w.Header().Add("Content-type", "application/json")
 				json.NewEncoder(w).Encode(product)
 			}
 		}
@@ -117,15 +117,15 @@ func (pc *ProductsController) GetProductsFiltered() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		param := req.URL.Query().Get("priceGT")
 		if param == "" {
-			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode("priceGT value was not set")
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
 		price, err := strconv.ParseFloat(param, 64)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(err.Error())
+			json.NewEncoder(w).Encode("error parsing priceGT value")
 			return
 		}
 
@@ -137,8 +137,8 @@ func (pc *ProductsController) GetProductsFiltered() http.HandlerFunc {
 			}
 		}
 
+		w.Header().Set("Content-type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Header().Add("Content-type", "application/json")
 		json.NewEncoder(w).Encode(okProducts)
 	}
 }
