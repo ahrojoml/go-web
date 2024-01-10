@@ -1,4 +1,6 @@
-package api
+package product
+
+import "time"
 
 type Product struct {
 	Id          int     `json:"id,omitempty"`
@@ -10,7 +12,7 @@ type Product struct {
 	Price       float64 `json:"price"`
 }
 
-func (p Product) validate() error {
+func (p Product) Validate() error {
 	if p.Name == "" {
 		return NewInvalidProductError("name")
 	}
@@ -25,6 +27,9 @@ func (p Product) validate() error {
 	}
 	if p.Price == 0 {
 		return NewInvalidProductError("price")
+	}
+	if _, err := time.Parse("01/02/2006", p.Expiration); err != nil {
+		return NewInvalidProductError("date")
 	}
 	return nil
 }
