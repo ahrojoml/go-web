@@ -31,15 +31,15 @@ func main() {
 	}
 
 	var products map[int]api.Product = map[int]api.Product{}
-	var nextID int
+	var lastID int
 	for _, product := range readProducts {
 		products[product.Id] = product
-		nextID = max(nextID, product.Id)
+		lastID = max(lastID, product.Id)
 	}
 
 	productController := api.ProductsController{
 		Products: products,
-		NextID:   nextID + 1,
+		LastID:   lastID,
 	}
 
 	router := chi.NewRouter()

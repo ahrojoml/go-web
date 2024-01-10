@@ -17,7 +17,7 @@ type ProductResponse struct {
 
 type ProductsController struct {
 	Products map[int]Product
-	NextID   int
+	LastID   int
 }
 
 func (pc *ProductsController) AddProduct() http.HandlerFunc {
@@ -57,9 +57,9 @@ func (pc *ProductsController) AddProduct() http.HandlerFunc {
 			return
 		}
 
-		product.Id = pc.NextID
+		pc.LastID++
+		product.Id = pc.LastID
 		pc.Products[product.Id] = product
-		pc.NextID++
 
 		body := ProductResponse{
 			Message: "success",
