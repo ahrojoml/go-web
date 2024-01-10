@@ -9,3 +9,22 @@ type Product struct {
 	Expiration  string  `json:"expiration"`
 	Price       float64 `json:"price"`
 }
+
+func (p Product) validate() error {
+	if p.Name == "" {
+		return NewInvalidProductError("name")
+	}
+	if p.Quantity == 0 {
+		return NewInvalidProductError("quantity")
+	}
+	if p.Code == "" {
+		return NewInvalidProductError("code")
+	}
+	if p.Expiration == "" {
+		return NewInvalidProductError("expiration")
+	}
+	if p.Price == 0 {
+		return NewInvalidProductError("price")
+	}
+	return nil
+}

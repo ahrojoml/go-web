@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -25,12 +26,23 @@ func (pc *ProductsController) AddProduct() http.HandlerFunc {
 		var product Product
 		if err := json.NewDecoder(req.Body).Decode(&product); err != nil {
 			body := ProductResponse{
-				Message: err.Error(),
+				Message: "could not decode body",
 				Error:   true,
 			}
 			w.WriteHeader(http.StatusBadRequest)
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(body)
+		}
+
+		if err := product.validate(); err != nil {
+			body := ProductResponse{
+				Message: fmt.Sprintf("field is missing body"),
+				Error:   true,
+			}
+			w.WriteHeader(http.StatusBadRequest)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(body)
+			return
 		}
 
 		for _, p := range pc.Products {
@@ -48,7 +60,7 @@ func (pc *ProductsController) AddProduct() http.HandlerFunc {
 
 		if _, err := time.Parse("01/02/2006", product.Expiration); err != nil {
 			body := ProductResponse{
-				Message: err.Error(),
+				Message: "could not parse expiration date",
 				Error:   true,
 			}
 			w.WriteHeader(http.StatusBadRequest)
