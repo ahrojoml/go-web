@@ -39,3 +39,7 @@ func (pd *ProductDefault) GetById(id int) (internal.Product, error) {
 func (pd *ProductDefault) GetByGreaterPrice(price float64) ([]internal.Product, error) {
 	return pd.repo.GetByGreaterPrice(price)
 }
+
+func (pd *ProductDefault) UpdateOrCreate(product internal.Product) (*internal.Product, error) {
+	return pd.repo.UpdateOrCreate(product)
+}

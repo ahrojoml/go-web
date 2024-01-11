@@ -6,4 +6,5 @@ type ProductService interface {
 	GetAll() (map[int]Product, error)
 	GetById(id int) (Product, error)
 	GetByGreaterPrice(price float64) ([]Product, error)
+	UpdateOrCreate(product Product) (*Product, error)
 }

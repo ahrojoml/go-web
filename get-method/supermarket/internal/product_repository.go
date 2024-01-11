@@ -7,4 +7,5 @@ type ProductRepository interface {
 	Save(product Product) Product
 	GetByGreaterPrice(price float64) ([]Product, error)
 	GetByCode(code string) (*Product, error)
+	UpdateOrCreate(product Product) (*Product, error)
 }

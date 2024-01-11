@@ -89,3 +89,21 @@ func (pdb *ProductDB) GetByCode(code string) (*internal.Product, error) {
 	}
 	return nil, internal.NewProductNotFoundError()
 }
+
+func (pdb *ProductDB) UpdateOrCreate(product internal.Product) (*internal.Product, error) {
+	if err := product.Validate(); err != nil {
+		return nil, err
+	}
+
+	if product.Id == 0 {
+		_, err := pdb.GetByCode(product.Code)
+		if err == nil {
+			return nil, internal.NewInvalidProductError("code is not unique")
+		}
+		pdb.Save(product)
+		return &product, nil
+	}
+
+	pdb.Products[product.Id] = product
+	return &product, nil
+}

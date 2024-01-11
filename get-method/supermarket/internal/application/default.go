@@ -32,6 +32,7 @@ func (s *Server) Run() error {
 		r.Get("/{id}", hd.GetProductById())
 		r.Get("/search", hd.GetProductsFiltered())
 		r.Post("/", hd.AddProduct())
+		r.Put("/{id}", hd.UpdateOrCreateProduct())
 	})
 
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", s.port), router); err != nil {
