@@ -12,7 +12,7 @@ type Storage struct{}
 func (s *Storage) GetAll() (map[int]internal.Product, int, error) {
 	var products map[int]internal.Product = map[int]internal.Product{}
 
-	file, err := os.Open("./get-method/supermarket/docs/db/products.json")
+	file, err := os.Open(os.Getenv("DB_PATH"))
 	if err != nil {
 		return map[int]internal.Product{}, 0, err
 	}
@@ -36,6 +36,25 @@ func (s *Storage) GetAll() (map[int]internal.Product, int, error) {
 	return map[int]internal.Product{}, lastId, nil
 }
 
-func (s *Storage) Save(map[int]internal.Product) error {
+func (s *Storage) Save(products map[int]internal.Product) error {
+	file, err := os.Create(os.Getenv("DB_PATH"))
+	if err != nil {
+		return err
+	}
+
+	var productsArray []internal.Product = make([]internal.Product, 0, len(products))
+	for _, product := range products {
+		productsArray = append(productsArray, product)
+	}
+
+	jsonData, err := json.Marshal(productsArray)
+	if err != nil {
+		return err
+	}
+
+	if _, err := file.Write(jsonData); err != nil {
+		return err
+	}
+
 	return nil
 }
