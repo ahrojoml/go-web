@@ -43,3 +43,11 @@ func (pd *ProductDefault) GetByGreaterPrice(price float64) ([]internal.Product, 
 func (pd *ProductDefault) UpdateOrCreate(product internal.Product) (*internal.Product, error) {
 	return pd.repo.UpdateOrCreate(product)
 }
+
+func (pd *ProductDefault) PartialUpdate(id int, product internal.Product) (*internal.Product, error) {
+	return pd.repo.PartialUpdate(id, product)
+}
+
+func (pd *ProductDefault) Delete(id int) error {
+	return pd.repo.Delete(id)
+}

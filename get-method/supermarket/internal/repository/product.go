@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"supermarket/internal"
+	"time"
 )
 
 type ProductDB struct {
@@ -106,4 +107,60 @@ func (pdb *ProductDB) UpdateOrCreate(product internal.Product) (*internal.Produc
 
 	pdb.Products[product.Id] = product
 	return &product, nil
+}
+
+func (pdb *ProductDB) PartialUpdate(id int, product internal.Product) (*internal.Product, error) {
+	dbProduct, ok := pdb.Products[id]
+	if !ok {
+		return nil, internal.NewProductNotFoundError()
+	}
+
+	if product.Name == "" {
+		product.Name = dbProduct.Name
+	}
+
+	if product.Quantity == 0 {
+		product.Quantity = dbProduct.Quantity
+	}
+
+	if product.Code == "" {
+		product.Code = dbProduct.Code
+	} else {
+		_, err := pdb.GetByCode(product.Code)
+		if err == nil {
+			return nil, internal.NewInvalidProductError("code is not unique")
+		}
+	}
+
+	if product.Price == 0 {
+		product.Price = dbProduct.Price
+	}
+
+	if product.IsPublished == false {
+		product.IsPublished = dbProduct.IsPublished
+	}
+
+	if product.Expiration == "" {
+		product.Expiration = dbProduct.Expiration
+	} else {
+		_, err := time.Parse("02/01/2006", product.Expiration)
+		if err != nil {
+			return nil, internal.NewInvalidProductError("expiration")
+		}
+	}
+
+	pdb.Products[id] = product
+
+	return &product, nil
+
+}
+
+func (pdb *ProductDB) Delete(id int) error {
+	_, ok := pdb.Products[id]
+	if !ok {
+		return internal.NewProductNotFoundError()
+	}
+
+	delete(pdb.Products, id)
+	return nil
 }

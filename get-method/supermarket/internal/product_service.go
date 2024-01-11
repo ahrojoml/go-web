@@ -7,4 +7,6 @@ type ProductService interface {
 	GetById(id int) (Product, error)
 	GetByGreaterPrice(price float64) ([]Product, error)
 	UpdateOrCreate(product Product) (*Product, error)
+	PartialUpdate(id int, product Product) (*Product, error)
+	Delete(id int) error
 }

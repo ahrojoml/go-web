@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -195,7 +196,85 @@ func (pc *DefaultProducts) UpdateOrCreateProduct() http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(body)
+	}
+}
+
+func (pc *DefaultProducts) PartialProductUpdate() http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		id, err := strconv.Atoi(chi.URLParam(req, "id"))
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		var product internal.Product
+		if err := json.NewDecoder(req.Body).Decode(&product); err != nil {
+			body := ProductResponse{
+				Message: "could not decode body",
+				Error:   true,
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(body)
+		}
+
+		product.Id = id
+
+		updatedProduct, err := pc.ps.PartialUpdate(id, product)
+		if err != nil {
+			body := ProductResponse{
+				Message: "error updating product",
+				Error:   true,
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(body)
+			return
+		}
+
+		body := ProductResponse{
+			Message: "success",
+			Data:    updatedProduct,
+			Error:   false,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(body)
+	}
+}
+
+func (pc *DefaultProducts) DeleteProduct() http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		id, err := strconv.Atoi(chi.URLParam(req, "id"))
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		err = pc.ps.Delete(id)
+		if err != nil {
+			if errors.As(err, &internal.ProductNotFoundError{}) {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+			body := ProductResponse{
+				Message: "error deleting product",
+				Error:   true,
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(body)
+			return
+		}
+
+		body := ProductResponse{
+			Message: "success",
+			Error:   false,
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(body)
 	}
 }

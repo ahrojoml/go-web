@@ -33,6 +33,8 @@ func (s *Server) Run() error {
 		r.Get("/search", hd.GetProductsFiltered())
 		r.Post("/", hd.AddProduct())
 		r.Put("/{id}", hd.UpdateOrCreateProduct())
+		r.Patch("/{id}", hd.PartialProductUpdate())
+		r.Delete("/{id}", hd.DeleteProduct())
 	})
 
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", s.port), router); err != nil {
