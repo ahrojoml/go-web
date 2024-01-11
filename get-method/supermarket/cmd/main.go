@@ -1,9 +1,9 @@
 package main
 
-import "supermarket/cmd/server/handler"
+import "supermarket/internal/application"
 
 func main() {
-	server := handler.NewServer("8080")
+	server := application.NewServer("8080")
 	if err := server.Run(); err != nil {
 		panic(err)
 	}

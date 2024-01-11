@@ -6,22 +6,28 @@ import (
 	"net/http"
 	"strconv"
 
-	productlib "supermarket/internal/product"
+	"supermarket/internal"
 
 	"github.com/go-chi/chi/v5"
 )
 
-type ProductResponse struct {
-	Message string              `json:"message"`
-	Data    *productlib.Product `json:"data"`
-	Error   bool                `json:"error"`
+type DefaultProducts struct {
+	ps internal.ProductService
 }
 
-type ProductsController struct{}
+func NewDefaultProducts(ps internal.ProductService) *DefaultProducts {
+	return &DefaultProducts{ps: ps}
+}
 
-func (pc *ProductsController) AddProduct() http.HandlerFunc {
+type ProductResponse struct {
+	Message string            `json:"message"`
+	Data    *internal.Product `json:"data"`
+	Error   bool              `json:"error"`
+}
+
+func (pc *DefaultProducts) AddProduct() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		var product productlib.Product
+		var product internal.Product
 		if err := json.NewDecoder(req.Body).Decode(&product); err != nil {
 			body := ProductResponse{
 				Message: "could not decode body",
@@ -43,7 +49,7 @@ func (pc *ProductsController) AddProduct() http.HandlerFunc {
 			return
 		}
 
-		productExists, err := productlib.CheckUniqueCode(product.Code)
+		productExists, err := pc.ps.CheckUniqueCode(product.Code)
 		if err != nil {
 			body := ProductResponse{
 				Message: "error retrieving product by code",
@@ -66,7 +72,7 @@ func (pc *ProductsController) AddProduct() http.HandlerFunc {
 			return
 		}
 
-		product = productlib.Save(product)
+		product = pc.ps.Save(product)
 
 		body := ProductResponse{
 			Message: "success",
@@ -80,9 +86,9 @@ func (pc *ProductsController) AddProduct() http.HandlerFunc {
 	}
 }
 
-func (pc *ProductsController) GetAllProducts() http.HandlerFunc {
+func (pc *DefaultProducts) GetAllProducts() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		products, err := productlib.GetAll()
+		products, err := pc.ps.GetAll()
 		if err != nil {
 			body := ProductResponse{
 				Message: "error retrieving products",
@@ -98,7 +104,7 @@ func (pc *ProductsController) GetAllProducts() http.HandlerFunc {
 	}
 }
 
-func (pc *ProductsController) GetProductById() http.HandlerFunc {
+func (pc *DefaultProducts) GetProductById() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		id, err := strconv.Atoi(chi.URLParam(req, "id"))
 		if err != nil {
@@ -106,7 +112,7 @@ func (pc *ProductsController) GetProductById() http.HandlerFunc {
 			return
 		}
 
-		product, err := productlib.GetById(id)
+		product, err := pc.ps.GetById(id)
 		if err != nil {
 			w.Header().Set("Content-type", "application/json")
 			w.WriteHeader(http.StatusNotFound)
@@ -120,7 +126,7 @@ func (pc *ProductsController) GetProductById() http.HandlerFunc {
 	}
 }
 
-func (pc *ProductsController) GetProductsFiltered() http.HandlerFunc {
+func (pc *DefaultProducts) GetProductsFiltered() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		param := req.URL.Query().Get("priceGT")
 		if param == "" {
@@ -136,7 +142,7 @@ func (pc *ProductsController) GetProductsFiltered() http.HandlerFunc {
 			return
 		}
 
-		products, err := productlib.GetByGreaterPrice(price)
+		products, err := pc.ps.GetByGreaterPrice(price)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode("error retrieving products")
