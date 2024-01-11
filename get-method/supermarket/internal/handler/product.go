@@ -192,7 +192,7 @@ func (pc *DefaultProducts) UpdateOrCreateProduct() http.HandlerFunc {
 
 		body := ProductResponse{
 			Message: "success",
-			Data:    updatedProduct,
+			Data:    &updatedProduct,
 			Error:   false,
 		}
 
@@ -237,7 +237,7 @@ func (pc *DefaultProducts) PartialProductUpdate() http.HandlerFunc {
 
 		body := ProductResponse{
 			Message: "success",
-			Data:    updatedProduct,
+			Data:    &updatedProduct,
 			Error:   false,
 		}
 		w.Header().Set("Content-Type", "application/json")

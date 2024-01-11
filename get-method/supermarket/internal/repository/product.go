@@ -93,26 +93,26 @@ func (pdb *ProductDB) GetByCode(code string) (*internal.Product, error) {
 
 func (pdb *ProductDB) UpdateOrCreate(product internal.Product) (internal.Product, error) {
 	if err := product.Validate(); err != nil {
-		return nil, err
+		return internal.Product{}, err
 	}
 
 	if product.Id == 0 {
 		p, err := pdb.GetByCode(product.Code)
 		if err == nil && p.Id != product.Id {
-			return nil, internal.NewInvalidProductError("code is not unique")
+			return internal.Product{}, internal.NewInvalidProductError("code is not unique")
 		}
 		pdb.Save(product)
-		return &product, nil
+		return product, nil
 	}
 
 	pdb.Products[product.Id] = product
-	return &product, nil
+	return product, nil
 }
 
 func (pdb *ProductDB) PartialUpdate(id int, product internal.Product) (internal.Product, error) {
 	dbProduct, ok := pdb.Products[id]
 	if !ok {
-		return nil, internal.NewProductNotFoundError()
+		return internal.Product{}, internal.NewProductNotFoundError()
 	}
 
 	if product.Name == "" {
@@ -128,7 +128,7 @@ func (pdb *ProductDB) PartialUpdate(id int, product internal.Product) (internal.
 	} else {
 		p, err := pdb.GetByCode(product.Code)
 		if err == nil && p.Id != id {
-			return nil, internal.NewInvalidProductError("code is not unique")
+			return internal.Product{}, internal.NewInvalidProductError("code is not unique")
 		}
 	}
 
@@ -145,13 +145,13 @@ func (pdb *ProductDB) PartialUpdate(id int, product internal.Product) (internal.
 	} else {
 		_, err := time.Parse("02/01/2006", product.Expiration)
 		if err != nil {
-			return nil, internal.NewInvalidProductError("expiration")
+			return internal.Product{}, internal.NewInvalidProductError("expiration")
 		}
 	}
 
 	pdb.Products[id] = product
 
-	return &product, nil
+	return product, nil
 
 }
 
