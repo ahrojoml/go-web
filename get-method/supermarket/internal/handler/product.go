@@ -3,11 +3,12 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"supermarket/internal"
+
+	"supermarket/platform/web/response"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -20,70 +21,35 @@ func NewDefaultProducts(ps internal.ProductService) *DefaultProducts {
 	return &DefaultProducts{ps: ps}
 }
 
-type ProductResponse struct {
-	Message string            `json:"message"`
-	Data    *internal.Product `json:"data"`
-	Error   bool              `json:"error"`
-}
-
 func (pc *DefaultProducts) AddProduct() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var product internal.Product
 		if err := json.NewDecoder(req.Body).Decode(&product); err != nil {
-			body := ProductResponse{
-				Message: "could not decode body",
-				Error:   true,
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(body)
+			response.Error(w, http.StatusBadRequest, "could not decode body")
+			return
 		}
 
 		if err := product.Validate(); err != nil {
-			body := ProductResponse{
-				Message: fmt.Sprintf("field is missing body"),
-				Error:   true,
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(body)
+			response.Error(w, http.StatusBadRequest, "field is missing")
 			return
 		}
 
 		productExists, err := pc.ps.CheckUniqueCode(product.Code)
 		if err != nil {
-			body := ProductResponse{
-				Message: "error retrieving product by code",
-				Error:   true,
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(body)
+			response.Error(w, http.StatusInternalServerError, "error retrieving product by code")
 			return
 		}
 
 		if !productExists {
-			body := ProductResponse{
-				Message: "product already exists",
-				Error:   true,
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(body)
+			response.Error(w, http.StatusConflict, "product already exists")
 			return
 		}
 
 		product = pc.ps.Save(product)
 
-		body := ProductResponse{
-			Message: "success",
-			Data:    &product,
-			Error:   false,
-		}
-
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(body)
+		json.NewEncoder(w).Encode(product)
 	}
 }
 
@@ -91,13 +57,8 @@ func (pc *DefaultProducts) GetAllProducts() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		products, err := pc.ps.GetAll()
 		if err != nil {
-			body := ProductResponse{
-				Message: "error retrieving products",
-				Error:   true,
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(body)
+			response.Error(w, http.StatusInternalServerError, "error retrieving products")
+			return
 		}
 		w.Header().Set("Content-type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -109,15 +70,13 @@ func (pc *DefaultProducts) GetProductById() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		id, err := strconv.Atoi(chi.URLParam(req, "id"))
 		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
+			response.Error(w, http.StatusBadRequest, "error parsing id")
 			return
 		}
 
 		product, err := pc.ps.GetById(id)
 		if err != nil {
-			w.Header().Set("Content-type", "application/json")
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode("product not found")
+			response.Error(w, http.StatusNotFound, "product not found")
 			return
 		}
 
@@ -132,22 +91,19 @@ func (pc *DefaultProducts) GetProductsFiltered() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		param := req.URL.Query().Get("priceGT")
 		if param == "" {
-			json.NewEncoder(w).Encode("priceGT value was not set")
-			w.WriteHeader(http.StatusBadRequest)
+			response.Error(w, http.StatusBadRequest, "priceGT value was not set")
 			return
 		}
 
 		price, err := strconv.ParseFloat(param, 64)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode("error parsing priceGT value")
+			response.Error(w, http.StatusBadRequest, "error parsing priceGT value")
 			return
 		}
 
 		products, err := pc.ps.GetByGreaterPrice(price)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode("error retrieving products")
+			response.Error(w, http.StatusInternalServerError, "error retrieving products")
 			return
 		}
 
@@ -161,36 +117,19 @@ func (pc *DefaultProducts) UpdateOrCreateProduct() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var product internal.Product
 		if err := json.NewDecoder(req.Body).Decode(&product); err != nil {
-			body := ProductResponse{
-				Message: "could not decode body",
-				Error:   true,
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(body)
+			response.Error(w, http.StatusBadRequest, "could not decode body")
+			return
 		}
 
 		updatedProduct, err := pc.ps.UpdateOrCreate(product)
 		if err != nil {
-			body := ProductResponse{
-				Message: "error updating or creating product",
-				Error:   true,
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(body)
+			response.Error(w, http.StatusInternalServerError, "error updating or creating product")
 			return
-		}
-
-		body := ProductResponse{
-			Message: "success",
-			Data:    &updatedProduct,
-			Error:   false,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(body)
+		json.NewEncoder(w).Encode(updatedProduct)
 	}
 }
 
@@ -198,43 +137,27 @@ func (pc *DefaultProducts) PartialProductUpdate() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		id, err := strconv.Atoi(chi.URLParam(req, "id"))
 		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
+			response.Error(w, http.StatusBadRequest, "error parsing id")
 			return
 		}
 
 		var product internal.Product
 		if err := json.NewDecoder(req.Body).Decode(&product); err != nil {
-			body := ProductResponse{
-				Message: "could not decode body",
-				Error:   true,
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(body)
+			response.Error(w, http.StatusBadRequest, "could not decode body")
+			return
 		}
 
 		product.Id = id
 
 		updatedProduct, err := pc.ps.PartialUpdate(id, product)
 		if err != nil {
-			body := ProductResponse{
-				Message: "error updating product",
-				Error:   true,
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(body)
+			response.Error(w, http.StatusInternalServerError, "error updating product")
 			return
 		}
 
-		body := ProductResponse{
-			Message: "success",
-			Data:    &updatedProduct,
-			Error:   false,
-		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(body)
+		json.NewEncoder(w).Encode(updatedProduct)
 	}
 }
 
@@ -242,23 +165,17 @@ func (pc *DefaultProducts) DeleteProduct() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		id, err := strconv.Atoi(chi.URLParam(req, "id"))
 		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
+			response.Error(w, http.StatusBadRequest, "error parsing id")
 			return
 		}
 
 		err = pc.ps.Delete(id)
 		if err != nil {
 			if errors.As(err, &internal.ProductNotFoundError{}) {
-				w.WriteHeader(http.StatusNotFound)
+				response.Error(w, http.StatusNotFound, "product not found")
 				return
 			}
-			body := ProductResponse{
-				Message: "error deleting product",
-				Error:   true,
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(body)
+			response.Error(w, http.StatusInternalServerError, "error deleting product")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
