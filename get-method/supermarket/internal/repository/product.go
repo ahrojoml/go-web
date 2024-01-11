@@ -91,7 +91,7 @@ func (pdb *ProductDB) GetByCode(code string) (*internal.Product, error) {
 	return nil, internal.NewProductNotFoundError()
 }
 
-func (pdb *ProductDB) UpdateOrCreate(product internal.Product) (*internal.Product, error) {
+func (pdb *ProductDB) UpdateOrCreate(product internal.Product) (internal.Product, error) {
 	if err := product.Validate(); err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (pdb *ProductDB) UpdateOrCreate(product internal.Product) (*internal.Produc
 	return &product, nil
 }
 
-func (pdb *ProductDB) PartialUpdate(id int, product internal.Product) (*internal.Product, error) {
+func (pdb *ProductDB) PartialUpdate(id int, product internal.Product) (internal.Product, error) {
 	dbProduct, ok := pdb.Products[id]
 	if !ok {
 		return nil, internal.NewProductNotFoundError()

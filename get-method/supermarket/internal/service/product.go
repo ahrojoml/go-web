@@ -19,7 +19,7 @@ func (pd *ProductDefault) CheckUniqueCode(code string) (bool, error) {
 		if errors.As(err, &internal.ProductNotFoundError{}) {
 			return true, nil
 		}
-		return false, nil
+		return false, err
 	}
 	return false, nil
 }
@@ -40,11 +40,11 @@ func (pd *ProductDefault) GetByGreaterPrice(price float64) ([]internal.Product, 
 	return pd.repo.GetByGreaterPrice(price)
 }
 
-func (pd *ProductDefault) UpdateOrCreate(product internal.Product) (*internal.Product, error) {
+func (pd *ProductDefault) UpdateOrCreate(product internal.Product) (internal.Product, error) {
 	return pd.repo.UpdateOrCreate(product)
 }
 
-func (pd *ProductDefault) PartialUpdate(id int, product internal.Product) (*internal.Product, error) {
+func (pd *ProductDefault) PartialUpdate(id int, product internal.Product) (internal.Product, error) {
 	return pd.repo.PartialUpdate(id, product)
 }
 
