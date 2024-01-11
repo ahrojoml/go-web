@@ -47,10 +47,10 @@ func (p Product) Validate() error {
 	if p.Expiration == "" {
 		return NewInvalidProductError("expiration")
 	}
-	if p.Price == 0 {
+	if p.Price <= 0 {
 		return NewInvalidProductError("price")
 	}
-	if _, err := time.Parse("01/02/2006", p.Expiration); err != nil {
+	if _, err := time.Parse("02/01/2006", p.Expiration); err != nil {
 		return NewInvalidProductError("date")
 	}
 	return nil

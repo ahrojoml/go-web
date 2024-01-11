@@ -118,6 +118,7 @@ func (pc *DefaultProducts) GetProductById() http.HandlerFunc {
 			w.Header().Set("Content-type", "application/json")
 			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode("product not found")
+			return
 		}
 
 		w.Header().Set("Content-type", "application/json")
@@ -268,13 +269,7 @@ func (pc *DefaultProducts) DeleteProduct() http.HandlerFunc {
 			json.NewEncoder(w).Encode(body)
 			return
 		}
-
-		body := ProductResponse{
-			Message: "success",
-			Error:   false,
-		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(body)
 	}
 }

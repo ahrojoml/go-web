@@ -97,8 +97,8 @@ func (pdb *ProductDB) UpdateOrCreate(product internal.Product) (*internal.Produc
 	}
 
 	if product.Id == 0 {
-		_, err := pdb.GetByCode(product.Code)
-		if err == nil {
+		p, err := pdb.GetByCode(product.Code)
+		if err == nil && p.Id != product.Id {
 			return nil, internal.NewInvalidProductError("code is not unique")
 		}
 		pdb.Save(product)
@@ -126,8 +126,8 @@ func (pdb *ProductDB) PartialUpdate(id int, product internal.Product) (*internal
 	if product.Code == "" {
 		product.Code = dbProduct.Code
 	} else {
-		_, err := pdb.GetByCode(product.Code)
-		if err == nil {
+		p, err := pdb.GetByCode(product.Code)
+		if err == nil && p.Id != id {
 			return nil, internal.NewInvalidProductError("code is not unique")
 		}
 	}
