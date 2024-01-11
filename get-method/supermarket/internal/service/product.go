@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"supermarket/internal"
+	"time"
 )
 
 type ProductDefault struct {
@@ -41,10 +42,51 @@ func (pd *ProductDefault) GetByGreaterPrice(price float64) ([]internal.Product, 
 }
 
 func (pd *ProductDefault) UpdateOrCreate(product internal.Product) (internal.Product, error) {
+	if err := product.Validate(); err != nil {
+		return internal.Product{}, err
+	}
 	return pd.repo.UpdateOrCreate(product)
 }
 
 func (pd *ProductDefault) PartialUpdate(id int, product internal.Product) (internal.Product, error) {
+	dbProduct, err := pd.repo.GetById(id)
+	if err != nil {
+		return internal.Product{}, internal.NewProductNotFoundError()
+	}
+
+	if product.Name == "" {
+		product.Name = dbProduct.Name
+	}
+
+	if product.Quantity == 0 {
+		product.Quantity = dbProduct.Quantity
+	}
+
+	if product.Code == "" {
+		product.Code = dbProduct.Code
+	} else {
+		p, err := pd.repo.GetByCode(product.Code)
+		if err == nil && p.Id != id {
+			return internal.Product{}, internal.NewInvalidProductError("code is not unique")
+		}
+	}
+
+	if product.Price == 0 {
+		product.Price = dbProduct.Price
+	}
+
+	if product.IsPublished == false {
+		product.IsPublished = dbProduct.IsPublished
+	}
+
+	if product.Expiration == "" {
+		product.Expiration = dbProduct.Expiration
+	} else {
+		_, err := time.Parse("02/01/2006", product.Expiration)
+		if err != nil {
+			return internal.Product{}, internal.NewInvalidProductError("expiration")
+		}
+	}
 	return pd.repo.PartialUpdate(id, product)
 }
 

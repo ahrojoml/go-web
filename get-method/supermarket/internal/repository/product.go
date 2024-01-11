@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"supermarket/internal"
-	"time"
 )
 
 type ProductDB struct {
@@ -92,10 +91,6 @@ func (pdb *ProductDB) GetByCode(code string) (*internal.Product, error) {
 }
 
 func (pdb *ProductDB) UpdateOrCreate(product internal.Product) (internal.Product, error) {
-	if err := product.Validate(); err != nil {
-		return internal.Product{}, err
-	}
-
 	if product.Id == 0 {
 		p, err := pdb.GetByCode(product.Code)
 		if err == nil && p.Id != product.Id {
@@ -110,44 +105,6 @@ func (pdb *ProductDB) UpdateOrCreate(product internal.Product) (internal.Product
 }
 
 func (pdb *ProductDB) PartialUpdate(id int, product internal.Product) (internal.Product, error) {
-	dbProduct, ok := pdb.Products[id]
-	if !ok {
-		return internal.Product{}, internal.NewProductNotFoundError()
-	}
-
-	if product.Name == "" {
-		product.Name = dbProduct.Name
-	}
-
-	if product.Quantity == 0 {
-		product.Quantity = dbProduct.Quantity
-	}
-
-	if product.Code == "" {
-		product.Code = dbProduct.Code
-	} else {
-		p, err := pdb.GetByCode(product.Code)
-		if err == nil && p.Id != id {
-			return internal.Product{}, internal.NewInvalidProductError("code is not unique")
-		}
-	}
-
-	if product.Price == 0 {
-		product.Price = dbProduct.Price
-	}
-
-	if product.IsPublished == false {
-		product.IsPublished = dbProduct.IsPublished
-	}
-
-	if product.Expiration == "" {
-		product.Expiration = dbProduct.Expiration
-	} else {
-		_, err := time.Parse("02/01/2006", product.Expiration)
-		if err != nil {
-			return internal.Product{}, internal.NewInvalidProductError("expiration")
-		}
-	}
 
 	pdb.Products[id] = product
 
