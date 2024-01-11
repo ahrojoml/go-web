@@ -159,12 +159,6 @@ func (pc *DefaultProducts) GetProductsFiltered() http.HandlerFunc {
 
 func (pc *DefaultProducts) UpdateOrCreateProduct() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		id, err := strconv.Atoi(chi.URLParam(req, "id"))
-		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-
 		var product internal.Product
 		if err := json.NewDecoder(req.Body).Decode(&product); err != nil {
 			body := ProductResponse{
@@ -175,8 +169,6 @@ func (pc *DefaultProducts) UpdateOrCreateProduct() http.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(body)
 		}
-
-		product.Id = id
 
 		updatedProduct, err := pc.ps.UpdateOrCreate(product)
 		if err != nil {

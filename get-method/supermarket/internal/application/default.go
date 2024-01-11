@@ -32,7 +32,7 @@ func (s *Server) Run() error {
 		r.Get("/{id}", hd.GetProductById())
 		r.Get("/search", hd.GetProductsFiltered())
 		r.Post("/", hd.AddProduct())
-		r.Put("/{id}", hd.UpdateOrCreateProduct())
+		r.Put("/", hd.UpdateOrCreateProduct())
 		r.Patch("/{id}", hd.PartialProductUpdate())
 		r.Delete("/{id}", hd.DeleteProduct())
 	})

@@ -97,6 +97,7 @@ func (pdb *ProductDB) UpdateOrCreate(product internal.Product) (internal.Product
 			return internal.Product{}, internal.NewInvalidProductError("code is not unique")
 		}
 		pdb.Save(product)
+		product.Id = pdb.LastID
 		return product, nil
 	}
 
