@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
 	"strconv"
 
 	"supermarket/internal"
@@ -23,6 +25,11 @@ func NewDefaultProducts(ps internal.ProductService) *DefaultProducts {
 
 func (pc *DefaultProducts) AddProduct() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		if token := req.Header.Get("Authorization"); subtle.ConstantTimeCompare([]byte(token), []byte(os.Getenv("PRODUCT_KEY"))) != 1 {
+			response.Error(w, http.StatusUnauthorized, "unauthorized")
+			return
+		}
+
 		var product internal.Product
 		if err := json.NewDecoder(req.Body).Decode(&product); err != nil {
 			response.Error(w, http.StatusBadRequest, "could not decode body")
@@ -115,6 +122,11 @@ func (pc *DefaultProducts) GetProductsFiltered() http.HandlerFunc {
 
 func (pc *DefaultProducts) UpdateOrCreateProduct() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		if token := req.Header.Get("Authorization"); subtle.ConstantTimeCompare([]byte(token), []byte(os.Getenv("PRODUCT_KEY"))) != 1 {
+			response.Error(w, http.StatusUnauthorized, "unauthorized")
+			return
+		}
+
 		var product internal.Product
 		if err := json.NewDecoder(req.Body).Decode(&product); err != nil {
 			response.Error(w, http.StatusBadRequest, "could not decode body")
@@ -135,6 +147,11 @@ func (pc *DefaultProducts) UpdateOrCreateProduct() http.HandlerFunc {
 
 func (pc *DefaultProducts) PartialProductUpdate() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		if token := req.Header.Get("Authorization"); subtle.ConstantTimeCompare([]byte(token), []byte(os.Getenv("PRODUCT_KEY"))) != 1 {
+			response.Error(w, http.StatusUnauthorized, "unauthorized")
+			return
+		}
+
 		id, err := strconv.Atoi(chi.URLParam(req, "id"))
 		if err != nil {
 			response.Error(w, http.StatusBadRequest, "error parsing id")
@@ -163,6 +180,11 @@ func (pc *DefaultProducts) PartialProductUpdate() http.HandlerFunc {
 
 func (pc *DefaultProducts) DeleteProduct() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		if token := req.Header.Get("Authorization"); subtle.ConstantTimeCompare([]byte(token), []byte(os.Getenv("PRODUCT_KEY"))) != 1 {
+			response.Error(w, http.StatusUnauthorized, "unauthorized")
+			return
+		}
+
 		id, err := strconv.Atoi(chi.URLParam(req, "id"))
 		if err != nil {
 			response.Error(w, http.StatusBadRequest, "error parsing id")
