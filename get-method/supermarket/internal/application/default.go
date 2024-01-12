@@ -35,6 +35,7 @@ func (s *Server) Run() error {
 		r.Put("/", hd.UpdateOrCreateProduct())
 		r.Patch("/{id}", hd.PartialProductUpdate())
 		r.Delete("/{id}", hd.DeleteProduct())
+		r.Get("/consumer_price", hd.GetCartPrice())
 	})
 
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", s.port), router); err != nil {

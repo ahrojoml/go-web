@@ -93,3 +93,32 @@ func (pd *ProductDefault) PartialUpdate(id int, product internal.Product) (inter
 func (pd *ProductDefault) Delete(id int) error {
 	return pd.repo.Delete(id)
 }
+
+func (pd *ProductDefault) GetTotalPrice(productIds []int) (float64, error) {
+	var products []internal.Product
+	if len(productIds) == 0 {
+		productsMap, err := pd.repo.GetAll()
+		if err != nil {
+			return 0, err
+		}
+
+		for _, product := range productsMap {
+			products = append(products, product)
+		}
+	} else {
+		for _, id := range productIds {
+			product, err := pd.repo.GetById(id)
+			if err != nil {
+				return 0, err
+			}
+			products = append(products, product)
+		}
+	}
+
+	totalPrice := 0.0
+	for _, product := range products {
+		totalPrice += product.Price
+	}
+
+	return totalPrice, nil
+}

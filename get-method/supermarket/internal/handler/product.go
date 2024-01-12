@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"supermarket/internal"
 
@@ -202,5 +203,36 @@ func (pc *DefaultProducts) DeleteProduct() http.HandlerFunc {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func (pc *DefaultProducts) GetCartPrice() http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+
+		param := req.URL.Query().Get("list")
+		param = strings.Replace(param, "[", "", -1)
+		param = strings.Replace(param, "]", "", -1)
+		productIdsStr := strings.Split(param, ",")
+
+		productIds := make([]int, len(productIdsStr))
+
+		for _, id := range productIdsStr {
+			val, err := strconv.Atoi(id)
+			if err != nil {
+				response.Error(w, http.StatusBadRequest, "error parsing id")
+			}
+			productIds = append(productIds, val)
+		}
+
+		price, err := pc.ps.GetTotalPrice(productIds)
+		if err != nil {
+			response.Error(w, http.StatusInternalServerError, "error retrieving cart price")
+			return
+		}
+
+		w.Header().Set("Content-type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(price)
+
 	}
 }

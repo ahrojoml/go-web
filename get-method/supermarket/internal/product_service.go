@@ -9,4 +9,5 @@ type ProductService interface {
 	UpdateOrCreate(product Product) (Product, error)
 	PartialUpdate(id int, product Product) (Product, error)
 	Delete(id int) error
+	GetTotalPrice(productIds []int) (float64, error)
 }
