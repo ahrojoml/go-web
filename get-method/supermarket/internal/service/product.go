@@ -10,7 +10,7 @@ type ProductDefault struct {
 	repo internal.ProductRepository
 }
 
-func NewMovieDefault(pdb internal.ProductRepository) *ProductDefault {
+func NewProductDefault(pdb internal.ProductRepository) *ProductDefault {
 	return &ProductDefault{repo: pdb}
 }
 

@@ -21,7 +21,7 @@ func NewServer(port string) *Server {
 
 func (s *Server) Run() error {
 	rp, _ := repository.NewProductRepository()
-	sv := service.NewMovieDefault(rp)
+	sv := service.NewProductDefault(rp)
 	hd := handler.NewDefaultProducts(sv)
 
 	router := chi.NewRouter()

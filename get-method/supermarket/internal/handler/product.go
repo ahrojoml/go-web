@@ -4,6 +4,7 @@ import (
 	"crypto/subtle"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -30,6 +31,8 @@ func (pc *DefaultProducts) AddProduct() http.HandlerFunc {
 			response.Error(w, http.StatusUnauthorized, "unauthorized")
 			return
 		}
+
+		fmt.Println(req.Header.Get("Authorization"))
 
 		var product internal.Product
 		if err := json.NewDecoder(req.Body).Decode(&product); err != nil {
