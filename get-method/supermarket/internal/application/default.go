@@ -8,6 +8,8 @@ import (
 	"supermarket/internal/repository"
 	"supermarket/internal/service"
 
+	"supermarket/platform/web/middleware"
+
 	"github.com/go-chi/chi/v5"
 )
 
@@ -26,15 +28,16 @@ func (s *Server) Run() error {
 
 	router := chi.NewRouter()
 
+	router.Use(middleware.ResponseData)
 	router.Get("/ping", handler.Ping)
 	router.Route("/products", func(r chi.Router) {
 		r.Get("/", hd.GetAllProducts())
 		r.Get("/{id}", hd.GetProductById())
 		r.Get("/search", hd.GetProductsFiltered())
-		r.Post("/", hd.AddProduct())
-		r.Put("/", hd.UpdateOrCreateProduct())
-		r.Patch("/{id}", hd.PartialProductUpdate())
-		r.Delete("/{id}", hd.DeleteProduct())
+		r.With(middleware.Auth).Post("/", hd.AddProduct())
+		r.With(middleware.Auth).Put("/", hd.UpdateOrCreateProduct())
+		r.With(middleware.Auth).Patch("/{id}", hd.PartialProductUpdate())
+		r.With(middleware.Auth).Delete("/{id}", hd.DeleteProduct())
 		r.Get("/consumer_price", hd.GetCartPrice())
 	})
 
