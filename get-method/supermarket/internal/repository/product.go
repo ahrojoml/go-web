@@ -7,13 +7,13 @@ import (
 	"supermarket/internal"
 )
 
-type ProductDB struct {
+type ProductMapDB struct {
 	Products map[int]internal.Product
 	LastID   int
 }
 
-func NewProductRepository() (*ProductDB, error) {
-	pdb := &ProductDB{
+func NewProductRepository() (*ProductMapDB, error) {
+	pdb := &ProductMapDB{
 		Products: map[int]internal.Product{},
 		LastID:   0,
 	}
@@ -25,7 +25,7 @@ func NewProductRepository() (*ProductDB, error) {
 	return pdb, nil
 }
 
-func (pdb *ProductDB) Start() (int, error) {
+func (pdb *ProductMapDB) Start() (int, error) {
 	file, err := os.Open("./get-method/supermarket/docs/db/products.json")
 	if err != nil {
 		return 0, err
@@ -50,11 +50,11 @@ func (pdb *ProductDB) Start() (int, error) {
 	return lastId, nil
 }
 
-func (pdb *ProductDB) GetAll() (map[int]internal.Product, error) {
+func (pdb *ProductMapDB) GetAll() (map[int]internal.Product, error) {
 	return pdb.Products, nil
 }
 
-func (pdb *ProductDB) GetById(id int) (internal.Product, error) {
+func (pdb *ProductMapDB) GetById(id int) (internal.Product, error) {
 	for _, product := range pdb.Products {
 		if product.Id == id {
 			return product, nil
@@ -63,14 +63,14 @@ func (pdb *ProductDB) GetById(id int) (internal.Product, error) {
 	return internal.Product{}, internal.NewProductNotFoundError()
 }
 
-func (pdb *ProductDB) Save(product internal.Product) internal.Product {
+func (pdb *ProductMapDB) Save(product internal.Product) internal.Product {
 	pdb.LastID++
 	product.Id = pdb.LastID
 	pdb.Products[pdb.LastID] = product
 	return product
 }
 
-func (pdb *ProductDB) GetByGreaterPrice(price float64) ([]internal.Product, error) {
+func (pdb *ProductMapDB) GetByGreaterPrice(price float64) ([]internal.Product, error) {
 	okProducts := []internal.Product{}
 
 	for _, product := range pdb.Products {
@@ -81,7 +81,7 @@ func (pdb *ProductDB) GetByGreaterPrice(price float64) ([]internal.Product, erro
 	return okProducts, nil
 }
 
-func (pdb *ProductDB) GetByCode(code string) (*internal.Product, error) {
+func (pdb *ProductMapDB) GetByCode(code string) (*internal.Product, error) {
 	for _, product := range pdb.Products {
 		if product.Code == code {
 			return &product, nil
@@ -90,7 +90,7 @@ func (pdb *ProductDB) GetByCode(code string) (*internal.Product, error) {
 	return nil, internal.NewProductNotFoundError()
 }
 
-func (pdb *ProductDB) UpdateOrCreate(product internal.Product) (internal.Product, error) {
+func (pdb *ProductMapDB) UpdateOrCreate(product internal.Product) (internal.Product, error) {
 	if product.Id == 0 {
 		p, err := pdb.GetByCode(product.Code)
 		if err == nil && p.Id != product.Id {
@@ -105,7 +105,7 @@ func (pdb *ProductDB) UpdateOrCreate(product internal.Product) (internal.Product
 	return product, nil
 }
 
-func (pdb *ProductDB) PartialUpdate(id int, product internal.Product) (internal.Product, error) {
+func (pdb *ProductMapDB) PartialUpdate(id int, product internal.Product) (internal.Product, error) {
 
 	pdb.Products[id] = product
 
@@ -113,7 +113,7 @@ func (pdb *ProductDB) PartialUpdate(id int, product internal.Product) (internal.
 
 }
 
-func (pdb *ProductDB) Delete(id int) error {
+func (pdb *ProductMapDB) Delete(id int) error {
 	_, ok := pdb.Products[id]
 	if !ok {
 		return internal.NewProductNotFoundError()

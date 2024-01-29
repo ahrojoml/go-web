@@ -21,7 +21,7 @@ func TestGetAllProducts(t *testing.T) {
 		1: {Id: 1, Name: "p1", Quantity: 1, Code: "c1", Price: 1, IsPublished: true},
 		2: {Id: 2, Name: "p2", Quantity: 2, Code: "c2", Price: 2, IsPublished: true},
 	}
-	db := repository.ProductDB{Products: dbData, LastID: 2}
+	db := repository.ProductMapDB{Products: dbData, LastID: 2}
 	sv := service.NewProductDefault(&db)
 	hd := handler.NewDefaultProducts(sv)
 
@@ -43,7 +43,7 @@ func TestGetProduct(t *testing.T) {
 		1: {Id: 1, Name: "p1", Quantity: 1, Code: "c1", Price: 1, IsPublished: true},
 		2: {Id: 2, Name: "p2", Quantity: 2, Code: "c2", Price: 2, IsPublished: true},
 	}
-	db := repository.ProductDB{Products: dbData, LastID: 2}
+	db := repository.ProductMapDB{Products: dbData, LastID: 2}
 	sv := service.NewProductDefault(&db)
 	hd := handler.NewDefaultProducts(sv)
 
@@ -71,7 +71,7 @@ func TestAddProduct(t *testing.T) {
 		1: {Id: 1, Name: "p1", Quantity: 1, Code: "c1", Price: 1, IsPublished: true},
 		2: {Id: 2, Name: "p2", Quantity: 2, Code: "c2", Price: 2, IsPublished: true},
 	}
-	db := repository.ProductDB{Products: dbData, LastID: 2}
+	db := repository.ProductMapDB{Products: dbData, LastID: 2}
 	sv := service.NewProductDefault(&db)
 	hd := handler.NewDefaultProducts(sv)
 
@@ -98,7 +98,7 @@ func TestDeleteProduct(t *testing.T) {
 		1: {Id: 1, Name: "p1", Quantity: 1, Code: "c1", Price: 1, IsPublished: true},
 		2: {Id: 2, Name: "p2", Quantity: 2, Code: "c2", Price: 2, IsPublished: true},
 	}
-	db := repository.ProductDB{Products: dbData, LastID: 2}
+	db := repository.ProductMapDB{Products: dbData, LastID: 2}
 	sv := service.NewProductDefault(&db)
 	hd := handler.NewDefaultProducts(sv)
 
